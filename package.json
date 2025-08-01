@@ -1,5 +1,5 @@
 {
-  "name": "vercel-ytdl-site",
+  "name": "npm run build",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
