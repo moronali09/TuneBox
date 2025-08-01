@@ -1,42 +1,27 @@
 import ytdl from 'ytdl-core';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export default async function handler(req, res) {
   try {
-    const { id, format } = req.query;
-    if (!id || !format) return res.status(400).send('Missing id or format');
+    const { id } = req.query;
+    if (!id) return res.status(400).json({ error: 'Missing video ID' });
 
     const info = await ytdl.getInfo(id);
-    const title = info.videoDetails.title.replace(/[^a-zA-Z0-9]/g, "_");
 
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${title}.${format}"`
-    );
-    res.setHeader("Content-Type", "application/octet-stream");
+    // audio-only formats
+    const audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
 
-    const filter =
-      format === "mp3"
-        ? "audioonly"
-        : format === "mp4"
-        ? "videoandaudio"
-        : null;
+    if (!audioFormats || audioFormats.length === 0) {
+      return res.status(404).json({ error: 'No audio format found' });
+    }
 
-    if (!filter) return res.status(400).send("Invalid format");
-
-    const stream = ytdl(id, {
-      quality: "highestaudio",
-      filter: filter === "audioonly" ? "audioonly" : "audioandvideo",
+    const bestAudio = audioFormats[0]; // usually highest bitrate
+    return res.status(200).json({
+      title: info.videoDetails.title,
+      audioUrl: bestAudio.url
     });
 
-    stream.pipe(res);
   } catch (err) {
-    console.error("Error downloading:", err);
-    res.status(500).send("Internal Server Error");
+    console.error('Audio fetch error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
