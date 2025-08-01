@@ -1,6 +1,4 @@
 import ytdl from 'ytdl-core';
-import ffmpegPath from 'ffmpeg-static';
-import ffmpeg from 'fluent-ffmpeg';
 
 export const config = {
   api: {
@@ -9,35 +7,36 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  const { id, format } = req.query;
-  if (!id || !format) return res.status(400).send('Missing id or format');
-
   try {
+    const { id, format } = req.query;
+    if (!id || !format) return res.status(400).send('Missing id or format');
+
     const info = await ytdl.getInfo(id);
-    const title = info.videoDetails.title.replace(/[^a-zA-Z0-9]/g, '_');
+    const title = info.videoDetails.title.replace(/[^a-zA-Z0-9]/g, "_");
 
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.${format}"`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${title}.${format}"`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
 
-    if (format === 'mp4') {
-      ytdl(id, { quality: 'highestvideo' }).pipe(res);
-    } else if (format === 'mp3') {
-      const stream = ytdl(id, { quality: 'highestaudio' });
+    const filter =
+      format === "mp3"
+        ? "audioonly"
+        : format === "mp4"
+        ? "videoandaudio"
+        : null;
 
-      ffmpeg(stream)
-        .setFfmpegPath(ffmpegPath)
-        .format('mp3')
-        .audioBitrate(128)
-        .on('error', (err) => {
-          console.error('FFmpeg Error:', err);
-          res.status(500).send('FFmpeg processing failed');
-        })
-        .pipe(res, { end: true });
+    if (!filter) return res.status(400).send("Invalid format");
 
-    } else {
-      res.status(400).send('Invalid format');
-    }
+    const stream = ytdl(id, {
+      quality: "highestaudio",
+      filter: filter === "audioonly" ? "audioonly" : "audioandvideo",
+    });
+
+    stream.pipe(res);
   } catch (err) {
-    console.error('Download Error:', err);
-    res.status(500).send('Internal Server Error');
+    console.error("Error downloading:", err);
+    res.status(500).send("Internal Server Error");
   }
 }
