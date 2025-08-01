@@ -1,5 +1,5 @@
 {
-  "name": "npm run build",
+  "name": "vercel-ytdl-site",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
@@ -10,9 +10,9 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "ytsr": "^3.2.0",
+    "ytsr": "^3.8.4",
     "ytdl-core": "^4.11.1",
     "ffmpeg-static": "^4.4.0",
-    "fluent-ffmpeg": "^2.1.2"
+    "fluent-ffmpeg": "^2.1.3"
   }
 }
