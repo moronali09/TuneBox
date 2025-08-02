@@ -1,7 +1,6 @@
-import fs from 'fs-extra';
-import { STORAGE } from '../../utils/storage';
+import { deleteObject } from '../../utils/s3';
 export default async (req, res) => {
   const { name } = req.body;
-  await fs.remove(`${STORAGE}/${name}`);
+  await deleteObject(name);
   res.status(200).json({ ok: true });
 };
