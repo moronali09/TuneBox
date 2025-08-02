@@ -1,14 +1,7 @@
-import fs from 'fs-extra';
-import { resolve } from '../../utils/storage';
-
+import { getObjectStream } from '../../utils/s3';
 export default async function handler(req, res) {
   const { name } = req.query;
-  const filePath = resolve(name);
-  try {
-    await fs.access(filePath);
-    res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
-    res.send(await fs.readFile(filePath));
-  } catch (e) {
-    res.status(404).json({ error: 'File not found' });
-  }
+  const stream = getObjectStream(name);
+  res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+  stream.pipe(res);
 }
