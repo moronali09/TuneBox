@@ -44,6 +44,10 @@ export default function Home() {
     fetchList();
   };
 
+  const download = (filename) => {
+    window.open(`/api/download?name=${encodeURIComponent(filename)}`, '_blank');
+  };
+
   return (
     <div style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
       <h1>File Manager</h1>
@@ -55,6 +59,9 @@ export default function Home() {
         {list.map(item => (
           <li key={item.name}>
             {item.name}{item.isDirectory? '/' : ''}
+            {!item.isDirectory && (
+              <button onClick={() => download(item.name)}>Download</button>
+            )}
             <button onClick={() => remove(item.name)}>Delete</button>
             <button onClick={() => rename(item.name)}>Rename</button>
           </li>
